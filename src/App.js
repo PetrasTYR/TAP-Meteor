@@ -1,15 +1,19 @@
 // import logo from './logo.svg';
 import React, { useEffect, useState } from 'react'
-import './App.css'
+// import './App.css'
 import { useQuery } from '@tanstack/react-query'
 import govtAPI from './api/govtAPI'
 import PageLayout from './common/Layout/PageLayout'
 import { Box } from '@mui/material'
 import DateTimeForm from './components/DateTimeForm/DateTimeForm'
+import dayjs from 'dayjs'
+import { toast } from 'react-toastify'
 
 function App() {
     const [selectedDate, setSelectedDate] = useState()
     const [selectedTime, setSelectedTime] = useState()
+    const [formattedDate, setFormattedDate] = useState()
+    const [cameraData, setCameraData] = useState()
 
     const handleDateChange = (date) => {
         setSelectedDate(date)
@@ -19,29 +23,30 @@ function App() {
         setSelectedTime(time)
     }
 
-    // * test react-query
+    const handleView = () => {
+        const formattedDate = dayjs(selectedDate).format('YYYY-MM-DD')
+        const formattedTime = dayjs(selectedTime).format('HH:mm:ss')
+        setFormattedDate(`${formattedDate}T${formattedTime}`)
+    }
+
     const { data: trafficData, error: getTrafficDataError } = useQuery(
-        ['trafficData', '2021-01-01T00:00:00'],
+        ['trafficData', formattedDate],
         async () => {
-            const { data } = await govtAPI.getTrafficImage(
-                '2021-01-01T00:00:00'
-            )
+            const { data } = await govtAPI.getTrafficImage(formattedDate)
             return data
         }
     )
 
     if (getTrafficDataError) {
-        console.log('error')
-        console.log(getTrafficDataError)
+        toast.error('Error fetching traffic data. Please try again later.')
     }
 
     useEffect(() => {
         if (trafficData) {
-            console.log(trafficData)
+            setCameraData(trafficData.items[0].cameras)
+            toast.success('Traffic data fetched successfully.')
         }
     }, [trafficData])
-    console.log(selectedDate)
-    console.log(selectedTime)
 
     return (
         <>
@@ -65,6 +70,7 @@ function App() {
                             selectedTime={selectedTime}
                             handleDateChange={handleDateChange}
                             handleTimeChange={handleTimeChange}
+                            handleView={handleView}
                         />
                     </Box>
                 </Box>
