@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import govtAPI from './api/govtAPI'
 import PageLayout from './common/Layout/PageLayout'
-import { Box } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import DateTimeForm from './components/DateTimeForm/DateTimeForm'
 import dayjs from 'dayjs'
 import { toast } from 'react-toastify'
+import { DataGrid } from '@mui/x-data-grid'
 
 function App() {
     const [selectedDate, setSelectedDate] = useState()
@@ -25,7 +26,7 @@ function App() {
 
     const handleView = () => {
         const formattedDate = dayjs(selectedDate).format('YYYY-MM-DD')
-        const formattedTime = dayjs(selectedTime).format('HH:mm:ss')
+        const formattedTime = dayjs(selectedTime).second(0).format('HH:mm:ss')
         setFormattedDate(`${formattedDate}T${formattedTime}`)
     }
 
@@ -48,12 +49,34 @@ function App() {
         }
     }, [trafficData])
 
+    const rows = cameraData?.map((camera, index) => {
+        return {
+            id: camera.camera_id,
+            index,
+            image: camera.image,
+            location: camera.location,
+            image_metadata: camera.image_metadata
+        }
+    })
+    const columns = [
+        { field: 'id', headerName: 'ID', width: 100 },
+        { field: 'location', headerName: 'Location', width: 150 },
+        {
+            field: 'action',
+            headerName: 'Action',
+            width: 150,
+            renderCell: (params) => {
+                const camera = params.row
+                return <Button href={camera.image}>View Image</Button>
+            }
+        }
+    ]
+
     return (
         <>
             <PageLayout header='TAP Meteor Weather & Traffic App'>
                 <Box
                     sx={{
-                        // px: 5,
                         display: 'flex',
                         width: '100%',
                         justifyContent: 'center'
@@ -64,7 +87,6 @@ function App() {
                             width: '50%'
                         }}
                     >
-                        <h1>Components go here</h1>
                         <DateTimeForm
                             selectedDate={selectedDate}
                             selectedTime={selectedTime}
@@ -72,6 +94,25 @@ function App() {
                             handleTimeChange={handleTimeChange}
                             handleView={handleView}
                         />
+                        <Box
+                            sx={{
+                                height: 400,
+                                width: '50%',
+                                py: 3,
+                                display: 'flex',
+                                m: 'auto'
+                            }}
+                        >
+                            {cameraData && (
+                                <DataGrid
+                                    rows={rows}
+                                    columns={columns}
+                                    pageSize={5}
+                                    rowsPerPageOptions={[5]}
+                                    disableSelectionOnClick
+                                />
+                            )}
+                        </Box>
                     </Box>
                 </Box>
             </PageLayout>
