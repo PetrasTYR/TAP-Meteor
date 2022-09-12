@@ -55,7 +55,8 @@ const DateTimeForm = ({
                 <Box
                     sx={{
                         display: 'flex',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        py: 2
                     }}
                 >
                     <Button

@@ -1,11 +1,11 @@
-// import logo from './logo.svg';
 import React, { useEffect, useState } from 'react'
 // import './App.css'
 import { useQuery } from '@tanstack/react-query'
 import govtAPI from './api/govtAPI'
 import PageLayout from './common/Layout/PageLayout'
-import { Box, Button } from '@mui/material'
 import DateTimeForm from './components/DateTimeForm/DateTimeForm'
+import TrafficImage from './components/TrafficImage/TrafficImage'
+import { Box, Button } from '@mui/material'
 import dayjs from 'dayjs'
 import { toast } from 'react-toastify'
 import { DataGrid } from '@mui/x-data-grid'
@@ -13,8 +13,14 @@ import { DataGrid } from '@mui/x-data-grid'
 function App() {
     const [selectedDate, setSelectedDate] = useState()
     const [selectedTime, setSelectedTime] = useState()
-    const [formattedDate, setFormattedDate] = useState()
     const [cameraData, setCameraData] = useState()
+    const [selectedCamera, setSelectedCamera] = useState()
+
+    const defaultDate = new Date()
+
+    const [formattedDate, setFormattedDate] = useState(
+        dayjs(defaultDate).format('YYYY-MM-DDTHH:mm:ss')
+    )
 
     const handleDateChange = (date) => {
         setSelectedDate(date)
@@ -25,6 +31,7 @@ function App() {
     }
 
     const handleView = () => {
+        setSelectedCamera()
         const formattedDate = dayjs(selectedDate).format('YYYY-MM-DD')
         const formattedTime = dayjs(selectedTime).second(0).format('HH:mm:ss')
         setFormattedDate(`${formattedDate}T${formattedTime}`)
@@ -44,8 +51,17 @@ function App() {
 
     useEffect(() => {
         if (trafficData) {
-            setCameraData(trafficData.items[0].cameras)
-            toast.success('Traffic data fetched successfully.')
+            if (Object.keys(trafficData.items[0]).length === 0) {
+                setCameraData(null)
+                toast.error('No traffic data available for this date and time.')
+            } else if (trafficData.items[0].cameras.length > 0) {
+                setCameraData(trafficData.items[0].cameras)
+                toast.success('Traffic data fetched successfully.', {
+                    position: 'bottom-center',
+                    autoClose: 3000,
+                    hideProgressBar: false
+                })
+            }
         }
     }, [trafficData])
 
@@ -67,11 +83,15 @@ function App() {
             width: 150,
             renderCell: (params) => {
                 const camera = params.row
-                return <Button href={camera.image}>View Image</Button>
+                return (
+                    <Button onClick={() => setSelectedCamera(camera)}>
+                        View Image
+                    </Button>
+                )
             }
         }
     ]
-
+    console.log(selectedCamera)
     return (
         <>
             <PageLayout header='TAP Meteor Weather & Traffic App'>
@@ -111,6 +131,18 @@ function App() {
                                     rowsPerPageOptions={[5]}
                                     disableSelectionOnClick
                                 />
+                            )}
+                        </Box>
+                        <Box
+                            sx={{
+                                height: 400,
+                                width: '50%',
+                                display: 'flex',
+                                m: 'auto'
+                            }}
+                        >
+                            {selectedCamera && (
+                                <TrafficImage selectedCamera={selectedCamera} />
                             )}
                         </Box>
                     </Box>
