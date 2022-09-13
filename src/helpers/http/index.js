@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from 'axios'
 
 class Axios {
     constructor(baseURL, prefix = '') {
@@ -12,9 +12,7 @@ class Axios {
         return this.axios({
             method: 'get',
             url,
-            // headers: this.getHeaders(headers, isExternalApi),
-            options,
-            // withCredentials: true
+            options
         })
     }
 
@@ -22,9 +20,7 @@ class Axios {
         return this.axios({
             method: 'post',
             url,
-            // headers: this.getHeaders(headers),
-            data,
-            // withCredentials: true
+            data
         })
     }
 }
