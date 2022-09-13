@@ -1,7 +1,7 @@
 import React from 'react'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
-import { Box, TextField, Button, Stack } from '@mui/material'
+import { Box, TextField, Button, Stack, Grid } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
@@ -25,31 +25,43 @@ const DateTimeForm = ({
                             alignItems: 'center'
                         }}
                     >
-                        <Box>
-                            <DesktopDatePicker
-                                label='Date'
-                                inputFormat='YYYY-MM-DD'
-                                value={selectedDate}
-                                onChange={handleDateChange}
-                                renderInput={(params) => (
-                                    <TextField {...params} />
-                                )}
-                            />
-                        </Box>
-                        <Box
-                            sx={{
-                                pl: 2
-                            }}
-                        >
-                            <TimePicker
-                                label='Time'
-                                value={selectedTime}
-                                onChange={handleTimeChange}
-                                renderInput={(params) => (
-                                    <TextField {...params} />
-                                )}
-                            />
-                        </Box>
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <DesktopDatePicker
+                                        label='Date'
+                                        inputFormat='YYYY-MM-DD'
+                                        value={selectedDate}
+                                        onChange={handleDateChange}
+                                        renderInput={(params) => (
+                                            <TextField {...params} />
+                                        )}
+                                    />
+                                </Box>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <TimePicker
+                                        label='Time'
+                                        value={selectedTime}
+                                        onChange={handleTimeChange}
+                                        renderInput={(params) => (
+                                            <TextField {...params} />
+                                        )}
+                                    />
+                                </Box>
+                            </Grid>
+                        </Grid>
                     </Box>
                 </LocalizationProvider>
                 <Box

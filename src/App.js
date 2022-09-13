@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import govtAPI from './api/govtAPI'
 import PageLayout from './common/Layout/PageLayout'
 import DateTimeForm from './components/DateTimeForm/DateTimeForm'
 import TrafficImage from './components/TrafficImage/TrafficImage'
-import { Box } from '@mui/material'
+import WeatherForecast from './components/WeatherForecast/WeatherForecast'
+import { Box, Grid } from '@mui/material'
 import dayjs from 'dayjs'
 import { toast } from 'react-toastify'
 import { DataGrid } from '@mui/x-data-grid'
-import positionStackAPI from './api/positionStackAPI'
+// import positionStackAPI from './api/positionStackAPI'
 
 function App() {
     const [selectedDate, setSelectedDate] = useState()
@@ -116,6 +117,42 @@ function App() {
         }
     }, [getWeatherData])
 
+    const addForecast = useCallback(
+        (camera) => {
+            const lat = camera.location.latitude
+            const lng = camera.location.longitude
+            const areaMetaData = weatherData.area_metadata
+            const forecasts = weatherData.items[0].forecasts
+            areaMetaData.forEach((area) => {
+                if (
+                    lat - area.label_location.latitude < 0.00001 &&
+                    lng - area.label_location.longitude < 0.00001
+                ) {
+                    const location = area.name
+                    const forecast = forecasts.find(
+                        (obj) => obj.area === location
+                    ).forecast
+                    camera.area = location
+                    camera.forecast = forecast
+                }
+            })
+        },
+        [weatherData]
+    )
+
+    const mapWeatherInfo = useCallback(
+        (cameraData) => {
+            cameraData?.forEach(async (camera) => {
+                addForecast(camera)
+            })
+        },
+        [addForecast]
+    )
+
+    useEffect(() => {
+        mapWeatherInfo(cameraData)
+    }, [cameraData, mapWeatherInfo])
+
     const rows = cameraData?.map((camera, index) => {
         return {
             id: camera.camera_id,
@@ -124,13 +161,15 @@ function App() {
             latitude: camera.location.latitude,
             longitude: camera.location.longitude,
             image_metadata: camera.image_metadata,
+            area: camera.area,
+            forecast: camera.forecast,
             _raw: camera
         }
     })
     const columns = [
         { field: 'id', headerName: 'Camera ID', width: 100 },
-        { field: 'latitude', headerName: 'Latitude', width: 150 },
-        { field: 'longitude', headerName: 'Longitude', width: 150 },
+        { field: 'latitude', headerName: 'Latitude', width: 120 },
+        { field: 'longitude', headerName: 'Longitude', width: 120 },
         { field: 'location', headerName: 'View From', width: 150 }
     ]
 
@@ -159,7 +198,7 @@ function App() {
                         <Box
                             sx={{
                                 height: 400,
-                                width: '100%',
+                                // width: '65%',
                                 pb: 3,
                                 display: 'flex',
                                 m: 'auto'
@@ -180,14 +219,34 @@ function App() {
                         <Box
                             sx={{
                                 height: '50%',
-                                width: '50%',
                                 display: 'flex',
                                 m: 'auto',
                                 pb: 1
                             }}
                         >
                             {selectedCamera && (
-                                <TrafficImage selectedCamera={selectedCamera} />
+                                <>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} md={6}>
+                                            <Box>
+                                                <WeatherForecast
+                                                    selectedCamera={
+                                                        selectedCamera
+                                                    }
+                                                />
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <Box>
+                                                <TrafficImage
+                                                    selectedCamera={
+                                                        selectedCamera
+                                                    }
+                                                />
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
+                                </>
                             )}
                         </Box>
                     </Box>
