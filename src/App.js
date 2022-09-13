@@ -5,11 +5,11 @@ import PageLayout from './common/Layout/PageLayout'
 import DateTimeForm from './components/DateTimeForm/DateTimeForm'
 import TrafficImage from './components/TrafficImage/TrafficImage'
 import WeatherForecast from './components/WeatherForecast/WeatherForecast'
-import { Box, Grid } from '@mui/material'
+import { Box, Grid, Button } from '@mui/material'
 import dayjs from 'dayjs'
 import { toast } from 'react-toastify'
 import { DataGrid } from '@mui/x-data-grid'
-// import positionStackAPI from './api/positionStackAPI'
+import positionStackAPI from './api/positionStackAPI'
 
 function App() {
     const [selectedDate, setSelectedDate] = useState()
@@ -125,8 +125,8 @@ function App() {
             const forecasts = weatherData.items[0].forecasts
             areaMetaData.forEach((area) => {
                 if (
-                    lat - area.label_location.latitude < 0.00001 &&
-                    lng - area.label_location.longitude < 0.00001
+                    0 < lat - area.label_location.latitude < 0.0001 &&
+                    0 < lng - area.label_location.longitude < 0.0001
                 ) {
                     const location = area.name
                     const forecast = forecasts.find(
@@ -140,13 +140,25 @@ function App() {
         [weatherData]
     )
 
+    const addStreetName = useCallback(async (camera) => {
+        const lat = camera.location.latitude
+        const lng = camera.location.longitude
+        positionStackAPI
+            .reverseGeocodeStreetAddress(lat, lng)
+            .then((response) => {
+                const street = response.data.data[0].street
+                camera.street = street
+            })
+    }, [])
+
     const mapWeatherInfo = useCallback(
         (cameraData) => {
             cameraData?.forEach(async (camera) => {
                 addForecast(camera)
+                addStreetName(camera)
             })
         },
-        [addForecast]
+        [addForecast, addStreetName]
     )
 
     useEffect(() => {
@@ -163,14 +175,21 @@ function App() {
             image_metadata: camera.image_metadata,
             area: camera.area,
             forecast: camera.forecast,
+            street: camera.street,
             _raw: camera
         }
     })
     const columns = [
         { field: 'id', headerName: 'Camera ID', width: 100 },
-        { field: 'latitude', headerName: 'Latitude', width: 120 },
-        { field: 'longitude', headerName: 'Longitude', width: 120 },
-        { field: 'location', headerName: 'View From', width: 150 }
+        { field: 'street', headerName: 'View From', width: 250 },
+        {
+            field: 'location',
+            headerName: 'Action',
+            width: 150,
+            renderCell: (params) => {
+                return <Button>View</Button>
+            }
+        }
     ]
 
     return (
@@ -198,7 +217,7 @@ function App() {
                         <Box
                             sx={{
                                 height: 400,
-                                // width: '65%',
+                                width: '70%',
                                 pb: 3,
                                 display: 'flex',
                                 m: 'auto'
@@ -227,8 +246,12 @@ function App() {
                             {selectedCamera && (
                                 <>
                                     <Grid container spacing={2}>
-                                        <Grid item xs={12} md={6}>
-                                            <Box>
+                                        <Grid item xs={12} md={5}>
+                                            <Box
+                                                sx={{
+                                                    pb: 0
+                                                }}
+                                            >
                                                 <WeatherForecast
                                                     selectedCamera={
                                                         selectedCamera
@@ -236,7 +259,7 @@ function App() {
                                                 />
                                             </Box>
                                         </Grid>
-                                        <Grid item xs={12} md={6}>
+                                        <Grid item xs={12} md={7}>
                                             <Box>
                                                 <TrafficImage
                                                     selectedCamera={
