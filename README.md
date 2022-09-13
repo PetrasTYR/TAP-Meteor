@@ -8,4 +8,5 @@
 ## Running locally
 1. Run `npm i` to install node_modules
 2. Run `npm start` to start the application locally
+3. A local `.env` file is needed due to storage of API keys
 
