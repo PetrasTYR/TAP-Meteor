@@ -4,7 +4,8 @@ import govtAPI from './api/govtAPI'
 import PageLayout from './common/Layout/PageLayout'
 import DateTimeForm from './components/DateTimeForm/DateTimeForm'
 import TrafficImage from './components/TrafficImage/TrafficImage'
-import { Box } from '@mui/material'
+import WeatherForecast from './components/WeatherForecast/WeatherForecast'
+import { Box, Grid } from '@mui/material'
 import dayjs from 'dayjs'
 import { toast } from 'react-toastify'
 import { DataGrid } from '@mui/x-data-grid'
@@ -167,8 +168,8 @@ function App() {
     })
     const columns = [
         { field: 'id', headerName: 'Camera ID', width: 100 },
-        { field: 'latitude', headerName: 'Latitude', width: 150 },
-        { field: 'longitude', headerName: 'Longitude', width: 150 },
+        { field: 'latitude', headerName: 'Latitude', width: 120 },
+        { field: 'longitude', headerName: 'Longitude', width: 120 },
         { field: 'location', headerName: 'View From', width: 150 }
     ]
 
@@ -197,7 +198,7 @@ function App() {
                         <Box
                             sx={{
                                 height: 400,
-                                width: '100%',
+                                // width: '65%',
                                 pb: 3,
                                 display: 'flex',
                                 m: 'auto'
@@ -218,14 +219,34 @@ function App() {
                         <Box
                             sx={{
                                 height: '50%',
-                                width: '60%',
                                 display: 'flex',
                                 m: 'auto',
                                 pb: 1
                             }}
                         >
                             {selectedCamera && (
-                                <TrafficImage selectedCamera={selectedCamera} />
+                                <>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} md={6}>
+                                            <Box>
+                                                <WeatherForecast
+                                                    selectedCamera={
+                                                        selectedCamera
+                                                    }
+                                                />
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <Box>
+                                                <TrafficImage
+                                                    selectedCamera={
+                                                        selectedCamera
+                                                    }
+                                                />
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
+                                </>
                             )}
                         </Box>
                     </Box>
