@@ -2,14 +2,14 @@ import React from 'react'
 import { Box } from '@mui/material'
 
 const TrafficImage = ({ selectedCamera }) => {
-    const { image_metadata, image } = selectedCamera
+    const { image } = selectedCamera
     return (
         <>
             <Box
                 component='img'
                 sx={{
-                    height: image_metadata.height,
-                    width: image_metadata.width
+                    height: 'auto',
+                    width: '100%'
                 }}
                 alt='Traffic Image'
                 src={image}

@@ -21,11 +21,7 @@ const PageLayout = ({ header, children }) => {
                     <Box>{children}</Box>
                 </Grid>
             </Grid>
-            <ToastContainer
-                position='bottom-center'
-                autoClose={2000}
-                hideProgressBar
-            />
+            <ToastContainer position='bottom-center' autoClose={2000} />
         </>
     )
 }

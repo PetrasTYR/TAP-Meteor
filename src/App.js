@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from 'react'
-// import './App.css'
 import { useQuery } from '@tanstack/react-query'
 import govtAPI from './api/govtAPI'
 import PageLayout from './common/Layout/PageLayout'
 import DateTimeForm from './components/DateTimeForm/DateTimeForm'
 import TrafficImage from './components/TrafficImage/TrafficImage'
-import { Box, Button } from '@mui/material'
+import { Box } from '@mui/material'
 import dayjs from 'dayjs'
 import { toast } from 'react-toastify'
 import { DataGrid } from '@mui/x-data-grid'
+import positionStackAPI from './api/positionStackAPI'
 
 function App() {
     const [selectedDate, setSelectedDate] = useState()
     const [selectedTime, setSelectedTime] = useState()
+
+    // States related to traffic images
     const [cameraData, setCameraData] = useState()
     const [selectedCamera, setSelectedCamera] = useState()
+
+    // States related to weather
+    const [weatherData, setWeatherData] = useState()
 
     const defaultDate = new Date()
 
@@ -37,6 +42,30 @@ function App() {
         setFormattedDate(`${formattedDate}T${formattedTime}`)
     }
 
+    // const reverseGeocodePromise = async (camera) => {
+    //     const lat = camera.location.latitude
+    //     const lng = camera.location.longitude
+    //     return positionStackAPI.reverseGeocodeStreetAddress(lat, lng)
+    //     const streetName = await positionStackAPI.reverseGeocodeStreetAddress(
+    //         lat,
+    //         lng
+    //     ).data[0].streetName
+    //     console.log(streetName)
+    //     camera.streetName = streetName
+    //     return camera
+    //     cameraData.forEach((camera) => {
+    //         const lat = camera.location.latitude
+    //         const lng = camera.location.longitude
+    //         const streetName = positionStackAPI.reverseGeocodeStreetAddress(
+    //             lat,
+    //             lng
+    //         ).data[0].street
+    //         camera.streetName = streetName
+    //     })
+    //     return cameraData
+    // }
+
+    // react-query for traffic image
     const { data: trafficData, error: getTrafficDataError } = useQuery(
         ['trafficData', formattedDate],
         async () => {
@@ -55,43 +84,56 @@ function App() {
                 setCameraData(null)
                 toast.error('No traffic data available for this date and time.')
             } else if (trafficData.items[0].cameras.length > 0) {
+                // Promise.all(
+                //     trafficData.items[0].cameras.map(async (camera) => {
+                //         return reverseGeocodePromise(camera)
+                //     })
+                // ).then((results) => {
+                //     console.log(results)
+                // })
                 setCameraData(trafficData.items[0].cameras)
-                toast.success('Traffic data fetched successfully.', {
-                    position: 'bottom-center',
-                    autoClose: 3000,
-                    hideProgressBar: false
-                })
+                toast.success('Traffic data fetched successfully.')
             }
         }
     }, [trafficData])
+
+    // react-query for weather data
+    const { data: getWeatherData, error: getWeatherDataError } = useQuery(
+        ['weatherData', formattedDate],
+        async () => {
+            const { data } = await govtAPI.getTwoHourWeather(formattedDate)
+            return data
+        }
+    )
+
+    if (getWeatherDataError) {
+        toast.error('Error fetching weather data. Please try again later.')
+    }
+
+    useEffect(() => {
+        if (getWeatherData) {
+            setWeatherData(getWeatherData)
+        }
+    }, [getWeatherData])
 
     const rows = cameraData?.map((camera, index) => {
         return {
             id: camera.camera_id,
             index,
             image: camera.image,
-            location: camera.location,
-            image_metadata: camera.image_metadata
+            latitude: camera.location.latitude,
+            longitude: camera.location.longitude,
+            image_metadata: camera.image_metadata,
+            _raw: camera
         }
     })
     const columns = [
-        { field: 'id', headerName: 'ID', width: 100 },
-        { field: 'location', headerName: 'Location', width: 150 },
-        {
-            field: 'action',
-            headerName: 'Action',
-            width: 150,
-            renderCell: (params) => {
-                const camera = params.row
-                return (
-                    <Button onClick={() => setSelectedCamera(camera)}>
-                        View Image
-                    </Button>
-                )
-            }
-        }
+        { field: 'id', headerName: 'Camera ID', width: 100 },
+        { field: 'latitude', headerName: 'Latitude', width: 150 },
+        { field: 'longitude', headerName: 'Longitude', width: 150 },
+        { field: 'location', headerName: 'View From', width: 150 }
     ]
-    console.log(selectedCamera)
+
     return (
         <>
             <PageLayout header='TAP Meteor Weather & Traffic App'>
@@ -117,8 +159,8 @@ function App() {
                         <Box
                             sx={{
                                 height: 400,
-                                width: '50%',
-                                py: 3,
+                                width: '100%',
+                                pb: 3,
                                 display: 'flex',
                                 m: 'auto'
                             }}
@@ -129,16 +171,19 @@ function App() {
                                     columns={columns}
                                     pageSize={5}
                                     rowsPerPageOptions={[5]}
-                                    disableSelectionOnClick
+                                    onRowClick={(params) => {
+                                        setSelectedCamera(params.row)
+                                    }}
                                 />
                             )}
                         </Box>
                         <Box
                             sx={{
-                                height: 400,
+                                height: '50%',
                                 width: '50%',
                                 display: 'flex',
-                                m: 'auto'
+                                m: 'auto',
+                                pb: 1
                             }}
                         >
                             {selectedCamera && (
