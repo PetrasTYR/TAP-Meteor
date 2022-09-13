@@ -6,7 +6,12 @@ const WeatherForecast = ({ selectedCamera }) => {
     const forecast = selectedCamera.forecast
     return (
         <>
-            <Box>
+            <Box
+                sx={{
+                    pb: 0,
+                    textAlign: 'center'
+                }}
+            >
                 <Typography>Area: {area}</Typography>
                 <Typography>Forecast: {forecast}</Typography>
             </Box>
